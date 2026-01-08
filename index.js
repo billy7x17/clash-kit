@@ -50,6 +50,11 @@ function startClash() {
 
 // ---------------- 3. 执行流程 ----------------
 export function main() {
+  // 检查 clash-meta 二进制文件是否存在
+  if (!fs.existsSync(CLASH_BIN_PATH)) {
+    return console.error(chalk.red('\n找不到 Clash.Meta 内核文件,请先运行 clash init 命令初始化内核！\n'))
+  }
+  // 检查配置文件是否存在
   if (!fs.existsSync(CLASH_CONFIG_PATH)) {
     return console.error(chalk.red('\n找不到配置文件 config.yaml,请先通过 clash sub 命令添加或选择订阅配置！\n'))
   }
