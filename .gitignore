@@ -9,7 +9,8 @@ dist
 *.log
 
 # clash-meta
-# config.yaml
+config.yaml
+profiles/*
 
 # clash 相关
 cache.db
