@@ -10,8 +10,8 @@ dist
 
 clash-meta
 config.yaml
-profiles/*
-ruleset/*
+profiles
+ruleset
 
 # clash 相关
 cache.db

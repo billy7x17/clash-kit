@@ -6,6 +6,13 @@
   "bin": {
     "clash": "./bin/index.js"
   },
+  "files": [
+    "bin",
+    "lib",
+    "index.js",
+    "package.json",
+    "README.md"
+  ],
   "main": "index.js",
   "scripts": {
     "start": "node bin/index.js start",
