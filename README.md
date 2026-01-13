@@ -19,9 +19,9 @@
 ### 1. 安装
 
 ```bash
-npm install -g clash-cli
+npm install -g clash-kit
 # 或者
-pnpm add -g clash-cli
+pnpm add -g clash-kit
 ```
 
 ### 2. 初始化
