@@ -1,4 +1,4 @@
-# Clash CLI
+# Clash Kit
 
 一个基于 Node.js 的 Clash 命令行管理工具，旨在简化 Clash 的配置管理、订阅切换和节点测速等操作。
 
