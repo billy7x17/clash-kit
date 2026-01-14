@@ -13,7 +13,7 @@ import { test } from '../lib/commands/test.js'
 
 const program = new Command()
 
-program.name('clash').description('Clash CLI 管理工具').version('1.0.0')
+program.name('clash').alias('ck').description('Clash CLI 管理工具 (Alias: ck)').version('1.0.0')
 
 // 初始化 clash 内核
 program
@@ -29,13 +29,18 @@ program.command('start').description('启动 Clash 服务').option('-s, --syspro
 program.command('stop').description('停止 Clash 服务').action(stop)
 
 // 设置系统代理
-program.command('sysproxy').description('设置系统代理').argument('[action]', 'on 或 off').action(setSysProxy)
+program
+  .command('sysproxy')
+  .alias('sys')
+  .description('设置系统代理')
+  .argument('[action]', 'on 或 off')
+  .action(setSysProxy)
 
 // 设置 TUN 模式（真正的全局代理，所有流量都会被代理）
 program.command('tun').description('设置 TUN 模式 (可能需要提权)').argument('[action]', 'on 或 off').action(setTun)
 
 // 查看 clash 状态
-program.command('status').description('查看 Clash 运行状态').action(status)
+program.command('status').alias('st').description('查看 Clash 运行状态').action(status)
 
 // 管理订阅
 program
@@ -48,9 +53,9 @@ program
   .action(manageSub)
 
 // 切换节点
-program.command('proxy').description('切换节点').action(proxy)
+program.command('proxy').alias('p').description('切换节点').action(proxy)
 
 // 节点测速
-program.command('test').description('节点测速').action(test)
+program.command('test').alias('t').description('节点测速').action(test)
 
 program.parse(process.argv)
