@@ -2,7 +2,6 @@
 
 <img width="800" alt="clash-kit" src="https://github.com/user-attachments/assets/dd7dfd29-f59a-418b-8623-6ab08ece9ddb" />
 
-
 一个基于 Node.js 的 Clash 命令行管理工具，旨在简化 Clash 的配置管理、订阅切换和节点测速等操作。
 
 ## 特性
@@ -33,6 +32,8 @@ pnpm add -g clash-kit
 
 ```bash
 clash init
+# 推荐用简化命令（文档后续均以简化命令为例）
+ck init
 ```
 
 ### 3. 启动服务
@@ -41,58 +42,58 @@ clash init
 
 ```bash
 # 启动 Clash 代理服务
-clash start
+ck start
 
 # 启动并自动开启系统代理
-clash start -s
+ck start -s
 ```
 
 ### 4. 添加订阅
 
 ```bash
 # 交互式管理订阅（添加、切换、删除等）【推荐使用这种方式来管理订阅】
-clash sub
+ck sub
 
 # 手动添加订阅
-clash sub -a "https://example.com/subscribe?token=xxx" -n "abcName"
+ck sub -a "https://example.com/subscribe?token=xxx" -n "abcName"
 ```
 
 ### 4. 节点测速与切换
 
 ```bash
 # 测速
-clash test
+ck test
 
 # 切换节点
-clash proxy
+ck proxy
 ```
 
 ### 5. 更多功能
 
 ```bash
 # 查看状态
-clash status
+ck status
 
 # 开启 TUN 模式 (需要 sudo 权限)
-sudo clash tun on
+sudo ck tun on
 ```
 
 ## 命令详解
 
-| 命令                  | 说明                       | 示例                                  |
-| --------------------- | -------------------------- | ------------------------------------- |
-| `clash init`          | 初始化内核及权限           | `clash init`                          |
-| `clash start`         | 启动 Clash 服务            | `clash start -s` (启动并设置系统代理) |
-| `clash stop`          | 停止服务并关闭代理         | `clash stop`                          |
-| `clash status`        | 查看运行状态及当前节点延迟 | `clash status`                        |
-| `clash sub`(推荐)     | 管理订阅（交互式）         | `clash sub`                           |
-| `clash sub -a <url>`  | 添加订阅                   | `clash sub -a "http..." -n "pro"`     |
-| `clash sub -u <name>` | 切换订阅                   | `clash sub -u "pro"`                  |
-| `clash sub -l`        | 列出所有订阅               | `clash sub -l`                        |
-| `clash proxy`         | 切换节点（交互式）         | `clash proxy`                         |
-| `clash test`          | 节点并发测速               | `clash test`                          |
-| `clash sysproxy`      | 设置系统代理 (on/off)      | `clash sysproxy on`                   |
-| `clash tun`           | 设置 TUN 模式 (on/off)     | `sudo clash tun on`                   |
+| 命令 (别名)           | 说明                       | 示例                            |
+| --------------------- | -------------------------- | ------------------------------- |
+| `ck init` (`i`)       | 初始化内核及权限           | `ck i`                          |
+| `ck start` (`on`)     | 启动 Clash 服务            | `ck on -s` (启动并设置系统代理) |
+| `ck stop` (`off`)     | 停止服务并关闭代理         | `ck off`                        |
+| `ck status` (`st`)    | 查看运行状态及当前节点延迟 | `ck st`                         |
+| `ck sub` (`s`)        | 管理订阅（交互式）         | `ck s`                          |
+| `ck sub -a <url>`     | 添加订阅                   | `ck s -a "http..." -n "pro"`    |
+| `ck sub -u <name>`    | 切换订阅                   | `ck s -u "pro"`                 |
+| `ck sub -l`           | 列出所有订阅               | `ck s -l`                       |
+| `ck proxy` (`p`)      | 切换节点（交互式）         | `ck p`                          |
+| `ck test` (`t`)       | 节点并发测速               | `ck t`                          |
+| `ck sysproxy` (`sys`) | 设置系统代理 (on/off)      | `ck sys on`                     |
+| `ck tun`              | 设置 TUN 模式 (on/off)     | `sudo ck tun on`                |
 
 ## 截图
 
