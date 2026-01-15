@@ -11,6 +11,8 @@
     "bin",
     "lib",
     "index.js",
+    "country.mmdb",
+    "default.yaml",
     "package.json",
     "README.md"
   ],
