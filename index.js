@@ -11,14 +11,14 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 // ---------------- 1. 配置项 ----------------
-const CLASH_BIN_PATH = path.join(__dirname, 'clash-meta') // 解压后的二进制文件路径
+const CLASH_BIN_PATH = path.join(__dirname, 'clash-kit') // 解压后的二进制文件路径
 const CLASH_CONFIG_PATH = path.join(__dirname, 'config.yaml') // 配置文件路径
 
 // ---------------- 2. 启动 Clash.Meta 进程 ----------------
 function startClash() {
   // 尝试停止已存在的进程
   try {
-    execSync('pkill -f clash-meta')
+    execSync('pkill -f clash-kit')
   } catch (e) {
     // 忽略错误，说明没有运行中的进程
   }
@@ -65,7 +65,7 @@ async function cleanup() {
 
     // 停止 Clash 进程
     try {
-      execSync('pkill -f clash-meta')
+      execSync('pkill -f clash-kit')
       console.log('Clash 服务已停止')
     } catch (e) {
       // 进程可能已经停止
@@ -101,7 +101,7 @@ function setupExitHandlers() {
 
 // ---------------- 5. 执行流程 ----------------
 export function main() {
-  // 检查 clash-meta 二进制文件是否存在
+  // 检查 clash-kit 二进制文件是否存在
   if (!fs.existsSync(CLASH_BIN_PATH)) {
     return console.error(chalk.red('\n找不到 Clash.Meta 内核文件,请先运行 clash init 命令初始化内核！\n'))
   }
@@ -118,7 +118,7 @@ export function main() {
 
   console.log(chalk.green('\n代理服务已在后台启动✅'))
   if (clashProcess.pid) {
-    console.log(`PID: ${chalk.yellow(clashProcess.pid)}`)
+    console.log(`进程名称：${chalk.yellow('clash-kit')} PID: ${chalk.yellow(clashProcess.pid)}`)
   }
 
   console.log(``)
@@ -126,7 +126,13 @@ export function main() {
   console.log(`SOCKS5 Proxy: ${chalk.cyan(`127.0.0.1:${socks}`)}`)
   console.log(`API:          ${chalk.cyan.underline(getApiBase())}`)
   console.log(``)
-  console.log(chalk.gray('提示: 如需停止代理可使用 clash stop 命令'))
+
+  console.log(chalk.gray('运行日志文件: ' + path.join(__dirname, 'clash.log')))
+  console.log(chalk.blue('提示：如需查看运行状态可使用 clash status 命令'))
+  console.log(chalk.blue('如需停止代理可使用 clash stop 命令'))
+  console.log(chalk.gray('----------------------------------------'))
+  console.log(chalk.gray('如需切换系统代理模式可使用 clash sysproxy on/off 命令'))
+  console.log(chalk.gray('如需切换 TUN 模式可使用 clash tun on/off 命令'))
 }
 
 // 运行脚本
