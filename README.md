@@ -99,20 +99,9 @@ sudo ck tun on
 
 <img width="2742" height="1994" alt="image" src="https://github.com/user-attachments/assets/1183f778-62b0-4ac7-ab55-b821b66161f0" />
 
-## 目录结构
-
-- `bin/`: CLI 入口文件
-- `lib/`: 核心逻辑库
-- `profiles/`: 存放下载的订阅配置文件
-- `clash-meta`: Clash 核心二进制文件
-- `config.yaml`: 当前生效的配置文件
-
-## 注意事项
-
-- 本工具依赖 `clash-meta` 二进制文件，请确保其与本工具在同一目录下（安装包已包含）。
-- 测速功能依赖 Clash API，请确保 `clash start` 正在运行。
-- 默认 API 地址为 `http://127.0.0.1:9090`。
-
 ## License
 
-ISC
+[MIT](./LICENSE).
+
+开源不易，点赞鼓励！
+点一个 Star⭐️ 支持我们~ 🌸Let's enjoy it!
