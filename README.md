@@ -1,9 +1,10 @@
 # Clash Kit
 
-<img width="800" alt="clash-kit" src="https://github.com/user-attachments/assets/703c8342-c753-47d8-8506-163d1b4a314a" />
-
-
 一个基于 Node.js 的 Clash 命令行管理工具，旨在简化 Clash 的配置管理、订阅切换和节点测速等操作。
+
+## 截图
+
+<img width="1920" alt="image" src="https://github.com/user-attachments/assets/1183f778-62b0-4ac7-ab55-b821b66161f0" />
 
 ## 特性
 
@@ -96,9 +97,6 @@ sudo ck tun on
 | `ck sysproxy` (`sys`) | 设置系统代理 (on/off)      | `ck sys on`                     |
 | `ck tun`              | 设置 TUN 模式 (on/off)     | `sudo ck tun on`                |
 
-## 截图
-
-<img width="2742" height="1994" alt="image" src="https://github.com/user-attachments/assets/1183f778-62b0-4ac7-ab55-b821b66161f0" />
 
 ## License
 
