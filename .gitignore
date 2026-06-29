@@ -9,6 +9,7 @@ dist
 *.log
 
 clash-kit
+clash-kit.exe
 config.yaml
 profiles
 ruleset
@@ -18,3 +19,17 @@ cache.db
 geoip.metadb
 m.yaml
 .current_profile
+dns-helper
+
+# brew packages
+clash-kit-*
+
+# bundled kernel archives generated during release
+kernels/*.gz
+kernels/*.zip
+kernels/manifest.json
+
+# ai coding
+.agents
+.github
+.gemini

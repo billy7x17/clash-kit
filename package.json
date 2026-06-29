@@ -1,8 +1,16 @@
 {
   "name": "clash-kit",
-  "version": "1.0.3",
+  "version": "1.2.0",
   "type": "module",
   "description": "A command-line interface for managing Clash configurations, subscriptions, and proxies.",
+  "homepage": "https://github.com/wangrongding/clash-kit#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wangrongding/clash-kit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wangrongding/clash-kit/issues"
+  },
   "bin": {
     "ck": "./bin/index.js",
     "clash": "./bin/index.js"
@@ -13,15 +21,16 @@
     ".gitignore",
     "default.yaml",
     "country.mmdb",
-    "index.js",
     "LICENSE.md",
     "package.json",
-    "README.md"
+    "README.md",
+    "kernels"
   ],
-  "main": "index.js",
   "scripts": {
     "start": "node bin/index.js start",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "download:kernels": "node scripts/download-kernels.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "node scripts/release.js"
   },
   "keywords": [
     "clash",
@@ -30,19 +39,25 @@
     "subscription",
     "manager"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "荣顶",
+    "email": "wangrongding@guazi.com",
+    "url": "https://github.com/wangrongding"
+  },
+  "license": "MIT",
   "packageManager": "pnpm@10.23.0",
   "dependencies": {
     "@inquirer/prompts": "^8.1.0",
     "@mihomo-party/sysproxy": "^2.0.8",
     "adm-zip": "^0.5.16",
     "axios": "^1.13.2",
+    "boxen": "^8.0.1",
     "chalk": "^5.6.2",
     "cli-progress": "^3.12.0",
     "commander": "^14.0.2",
     "inquirer": "^13.1.0",
     "ora": "^9.0.0",
+    "update-notifier": "^7.3.1",
     "yaml": "^2.8.2"
   }
 }
