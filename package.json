@@ -30,7 +30,13 @@
     "start": "node bin/index.js start",
     "download:kernels": "node scripts/download-kernels.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublishOnly": "node scripts/release.js"
+    "prepublishOnly": "node scripts/release.js",
+    "sub": "node bin/index.js sub",
+    "use": "node bin/index.js use",
+    "list": "node bin/index.js list",
+    "init": "node bin/index.js init",
+    "status": "node bin/index.js status",
+    "stop": "node bin/index.js stop"
   },
   "keywords": [
     "clash",
