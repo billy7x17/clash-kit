@@ -1,5 +1,6 @@
 .DS_Store
 node_modules
+package-lock.json
 .env
 dist
 
@@ -31,5 +32,7 @@ kernels/manifest.json
 
 # ai coding
 .agents
+.claude
 .github
 .gemini
+openspec
