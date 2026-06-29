@@ -95,6 +95,7 @@ program
   .option('-l, --list', '列出所有订阅')
   .option('-u, --use <name>', '切换使用的订阅')
   .option('-d, --delete <name>', '删除订阅')
+  .option('--ua <User-Agent>', '自定义 User-Agent（默认: clash-verge/2.4.0）')
   .action(manageSub)
 
 // 切换节点
