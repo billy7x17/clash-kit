@@ -36,6 +36,7 @@ coverage/
 # ai coding
 .agents
 .claude
-.github
+.github/*
+!.github/workflows/
 .gemini
 openspec
