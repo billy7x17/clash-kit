@@ -1,4 +1,12 @@
-export const KERNEL_TARGETS = {
+export interface KernelTarget {
+  assetName: string
+  archiveExt: string
+  platform: string
+  key?: string
+  isWindows?: boolean
+}
+
+export const KERNEL_TARGETS: Record<string, KernelTarget> = {
   'win32-x64': { assetName: 'mihomo-windows-amd64-compatible', archiveExt: 'zip', platform: 'win32' },
   'win32-ia32': { assetName: 'mihomo-windows-386', archiveExt: 'zip', platform: 'win32' },
   'win32-arm64': { assetName: 'mihomo-windows-arm64', archiveExt: 'zip', platform: 'win32' },
@@ -10,13 +18,16 @@ export const KERNEL_TARGETS = {
 
 export const DEFAULT_BUNDLED_TARGETS = ['darwin-arm64', 'darwin-x64', 'linux-x64', 'linux-arm64', 'win32-x64']
 
-export function getKernelTarget(platform = process.platform, arch = process.arch) {
+export function getKernelTarget(
+  platform: string = process.platform,
+  arch: string = process.arch,
+): (KernelTarget & { key: string; isWindows: boolean }) | null {
   const key = `${platform}-${arch}`
   const target = KERNEL_TARGETS[key]
   if (!target) return null
   return { ...target, key, isWindows: platform === 'win32' }
 }
 
-export function getTargetBinName(platform = process.platform) {
+export function getTargetBinName(platform: string = process.platform): string {
   return `clash-kit${platform === 'win32' ? '.exe' : ''}`
 }

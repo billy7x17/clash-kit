@@ -6,34 +6,30 @@ import { killClashProcess } from '../kernel.js'
 import boxen from 'boxen'
 import chalk from 'chalk'
 
-export async function stop() {
+export async function stop(): Promise<void> {
   const spinner = ora('正在停止服务...').start()
   try {
     let wasTunEnabled = false
 
-    // 1. 关闭系统代理（失败不中断）
     spinner.text = '正在关闭系统代理...'
     await sysproxy.disableSystemProxy().catch(() => {})
 
-    // 2. 检查并关闭 TUN 模式（失败不中断，继续杀进程）
     const tunEnabled = await tun.isTunEnabled().catch(() => false)
     if (tunEnabled) {
       wasTunEnabled = true
       spinner.text = '正在关闭 TUN 模式...'
       const result = await setTun('off', { silent: true }).catch(() => ({ success: false }))
-      if (!result.success) {
+      if (result && !result.success) {
         spinner.text = 'TUN 关闭失败，继续停止进程...'
       }
     }
 
-    // 3. 停止 Clash 核心进程
     spinner.text = '正在停止 Clash 核心进程...'
     const stopped = killClashProcess()
-    spinner.stop() // All processing is done, stop spinner
+    spinner.stop()
 
-    // 4. 显示最终结果
     if (stopped) {
-      const content = []
+      const content: string[] = []
       content.push(`Clash 服务: ${chalk.yellow('已停止')}`)
       content.push(`系统代理: ${chalk.gray('已关闭')}`)
       if (wasTunEnabled) content.push(`TUN 模式: ${chalk.gray('已关闭 (DNS 已恢复)')}`)
@@ -60,8 +56,9 @@ export async function stop() {
         }),
       )
     }
-  } catch (err) {
+  } catch (err: unknown) {
     if (spinner.isSpinning) spinner.stop()
-    console.error(`\n停止服务时出错: ${err.message}`)
+    const message = err instanceof Error ? err.message : String(err)
+    console.error(`\n停止服务时出错: ${message}`)
   }
 }

@@ -8,30 +8,19 @@ import { CLASH_BIN_PATH, CONFIG_PATH, DATA_DIR, DEFAULT_CONFIG_PATH, migrateLega
 
 const DEFAULT_CONFIG = `mixed-port: 7890\n`
 
-const RESOURCES = [
+interface Resource {
+  filename: string
+  url: string
+}
+
+const RESOURCES: Resource[] = [
   {
     filename: 'country.mmdb',
     url: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb',
   },
-  // {
-  //   filename: 'geoip.metadb',
-  //   url: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb',
-  // },
-  // {
-  //   filename: 'geosite.dat',
-  //   url: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat',
-  // },
-  // {
-  //   filename: 'geoip.dat',
-  //   url: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat',
-  // },
-  // {
-  //   filename: 'ASN.mmdb',
-  //   url: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb',
-  // },
 ]
 
-async function downloadResource(resource, targetDir) {
+async function downloadResource(resource: Resource, targetDir: string): Promise<void> {
   const filePath = path.join(targetDir, resource.filename)
   const spinner = ora(`正在下载 ${resource.filename}...`).start()
 
@@ -40,18 +29,22 @@ async function downloadResource(resource, targetDir) {
       url: resource.url,
       method: 'GET',
       responseType: 'arraybuffer',
-      timeout: 30 * 1000, // 30s timeout
+      timeout: 30 * 1000,
     })
-    fs.writeFileSync(filePath, response.data)
+    fs.writeFileSync(filePath, new Uint8Array(response.data as ArrayBuffer))
     spinner.succeed(`${resource.filename} 下载完成`)
-  } catch (e) {
-    spinner.fail(`${resource.filename} 下载失败: ${e.message}`)
-    // 不要抛出错误，让其他资源继续下载
-    // throw e
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e)
+    spinner.fail(`${resource.filename} 下载失败: ${message}`)
   }
 }
 
-export async function init(options = {}) {
+interface InitOptions {
+  force?: boolean
+  remote?: boolean
+}
+
+export async function init(options: InitOptions = {}): Promise<void> {
   try {
     const migrated = migrateLegacyData()
     const rootDir = DATA_DIR
@@ -63,7 +56,6 @@ export async function init(options = {}) {
       console.log(chalk.gray(`已迁移历史运行数据到 ${DATA_DIR}: ${migrated.join(', ')}`))
     }
 
-    // 创建默认配置文件（如果不存在）
     if (!fs.existsSync(configPath)) {
       if (fs.existsSync(DEFAULT_CONFIG_PATH)) {
         fs.copyFileSync(DEFAULT_CONFIG_PATH, configPath)
@@ -74,7 +66,6 @@ export async function init(options = {}) {
       }
     }
 
-    // 检查并下载资源文件
     console.log(chalk.blue('\n正在检查资源文件...'))
     for (const resource of RESOURCES) {
       const filePath = path.join(rootDir, resource.filename)
@@ -99,7 +90,6 @@ export async function init(options = {}) {
       console.log(`Clash 内核已存在: ${binPath}`)
       console.log('正在检查权限...')
       if (process.platform !== 'win32') {
-        // 检查是否已有 SUID 权限，如果有则不再重置为 755
         const stats = fs.statSync(binPath)
         const hasSuid = (stats.mode & 0o4000) === 0o4000
 
@@ -134,8 +124,9 @@ export async function init(options = {}) {
     console.log(chalk.cyan('  2. ck on    ') + chalk.gray('启动 Clash 服务'))
     console.log(chalk.cyan('  3. ck sys on   ') + chalk.gray('开启系统代理'))
     console.log(chalk.gray('\n  更多帮助: ck help\n'))
-  } catch (err) {
-    console.error(`初始化失败: ${err.message}`)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error(`初始化失败: ${message}`)
     process.exit(1)
   }
 }

@@ -5,9 +5,8 @@ import * as sub from '../subscription.js'
 import { confirm } from '@inquirer/prompts'
 import { CLASH_BIN_PATH } from '../service.js'
 
-async function handleAddSubscription(url, name, ua) {
+async function handleAddSubscription(url: string, name: string, ua?: string): Promise<void> {
   const profiles = sub.listProfiles()
-  // 没有找到可选的订阅，或没找到 config.yaml
   const isFirst = profiles.length === 0 || !fs.existsSync(sub.CONFIG_PATH)
 
   await sub.downloadSubscription(url, name, ua)
@@ -17,8 +16,16 @@ async function handleAddSubscription(url, name, ua) {
   await sub.useProfile(name)
 }
 
-export async function manageSub(options) {
-  // 检查 clash-kit 二进制文件是否存在
+interface SubOptions {
+  add?: string
+  name?: string
+  list?: boolean
+  use?: string
+  delete?: string
+  ua?: string
+}
+
+export async function manageSub(options: SubOptions): Promise<void> {
   if (!fs.existsSync(CLASH_BIN_PATH)) {
     return console.error(chalk.red('\n找不到 Clash.Meta 内核文件,请先运行 clash init 命令初始化内核！\n'))
   }
@@ -27,8 +34,9 @@ export async function manageSub(options) {
     if (!options.name) return console.error('错误: 添加订阅时必须指定名称 (-n)')
     try {
       await handleAddSubscription(options.add, options.name, options.ua)
-    } catch (err) {
-      console.error(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error(message)
     }
   } else if (options.list) {
     const profiles = sub.listProfiles()
@@ -37,19 +45,20 @@ export async function manageSub(options) {
   } else if (options.use) {
     try {
       await sub.useProfile(options.use)
-    } catch (err) {
-      console.error(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error(message)
     }
   } else if (options.delete) {
     console.log('🌸🌸🌸 / options: ', options)
     try {
       sub.deleteProfile(options.delete)
       console.log(chalk.green(`订阅 "${options.delete}" 已删除`))
-    } catch (err) {
-      console.error(chalk.red(err.message))
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error(chalk.red(message))
     }
   } else {
-    // 交互式模式
     const profiles = sub.listProfiles()
 
     const choices = [
@@ -73,8 +82,9 @@ export async function manageSub(options) {
       const url = await input({ message: '请输入订阅链接:' })
       try {
         await handleAddSubscription(url, name, options.ua)
-      } catch (err) {
-        console.error(err.message)
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err)
+        console.error(message)
       }
     } else if (action === 'edit') {
       if (profiles.length === 0) return console.log('暂无订阅，请先添加')
@@ -96,8 +106,9 @@ export async function manageSub(options) {
         if (!newName.trim() && !newUrl.trim()) {
           console.log(chalk.gray('未做任何修改'))
         }
-      } catch (err) {
-        console.error(chalk.red(err.message))
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err)
+        console.error(chalk.red(message))
       }
     } else if (action === 'delete') {
       if (profiles.length === 0) return console.log('暂无订阅，请先添加')
@@ -110,8 +121,9 @@ export async function manageSub(options) {
       try {
         sub.deleteProfile(profile)
         console.log(chalk.green(`订阅 "${profile}" 已删除`))
-      } catch (err) {
-        console.error(chalk.red(err.message))
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err)
+        console.error(chalk.red(message))
       }
     }
   }
