@@ -19,24 +19,24 @@ export const CLASH_BIN_PATH = path.join(DATA_DIR, binName)
 export const DEFAULT_CONFIG_PATH = path.join(PACKAGE_ROOT, 'default.yaml')
 export const BUNDLED_RESOURCE_FILES = ['country.mmdb']
 
-export function dataPath(...parts) {
+export function dataPath(...parts: string[]): string {
   return path.join(DATA_DIR, ...parts)
 }
 
-export function packagePath(...parts) {
+export function packagePath(...parts: string[]): string {
   return path.join(PACKAGE_ROOT, ...parts)
 }
 
-export function ensureDataDir() {
+export function ensureDataDir(): void {
   fs.mkdirSync(DATA_DIR, { recursive: true })
   fs.mkdirSync(PROFILES_DIR, { recursive: true })
 }
 
-function isSamePath(a, b) {
+function isSamePath(a: string, b: string): boolean {
   return path.resolve(a) === path.resolve(b)
 }
 
-function copyFileIfMissing(src, dest, label, migrated) {
+function copyFileIfMissing(src: string, dest: string, label: string, migrated: string[]): void {
   if (isSamePath(src, dest) || !fs.existsSync(src) || fs.existsSync(dest)) return
 
   fs.mkdirSync(path.dirname(dest), { recursive: true })
@@ -44,12 +44,20 @@ function copyFileIfMissing(src, dest, label, migrated) {
 
   try {
     fs.chmodSync(dest, fs.statSync(src).mode & 0o7777)
-  } catch {}
+  } catch {
+    /* hide system-level lookup failures */
+  }
 
   migrated.push(label)
 }
 
-function copyDirFilesIfMissing(srcDir, destDir, label, migrated, filter = () => true) {
+function copyDirFilesIfMissing(
+  srcDir: string,
+  destDir: string,
+  label: string,
+  migrated: string[],
+  filter: (file: string) => boolean = () => true,
+): void {
   if (isSamePath(srcDir, destDir) || !fs.existsSync(srcDir)) return
 
   fs.mkdirSync(destDir, { recursive: true })
@@ -69,8 +77,8 @@ function copyDirFilesIfMissing(srcDir, destDir, label, migrated, filter = () => 
   if (count > 0) migrated.push(`${label} (${count})`)
 }
 
-export function migrateLegacyData() {
-  const migrated = []
+export function migrateLegacyData(): string[] {
+  const migrated: string[] = []
   if (isSamePath(DATA_DIR, PACKAGE_ROOT)) return migrated
 
   ensureDataDir()
@@ -89,8 +97,8 @@ export function migrateLegacyData() {
   return migrated
 }
 
-export function copyBundledResources() {
-  const copied = []
+export function copyBundledResources(): string[] {
+  const copied: string[] = []
   ensureDataDir()
 
   for (const file of BUNDLED_RESOURCE_FILES) {

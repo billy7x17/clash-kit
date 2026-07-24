@@ -1,0 +1,13 @@
+node_modules/
+coverage/
+kernels/
+*.log
+dist/
+.git/
+.agents/
+.claude/
+.github/
+.gemini/
+openspec/
+package-lock.json
+pnpm-lock.yaml

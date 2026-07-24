@@ -3,10 +3,13 @@ import ora from 'ora'
 import chalk from 'chalk'
 import * as api from '../api.js'
 
-export async function proxy() {
+export async function proxy(): Promise<void> {
   let spinner = ora('正在获取最新代理列表...').start()
   try {
-    let proxies = await api.getProxies()
+    let proxies = (await api.getProxies()) as Record<
+      string,
+      { type: string; name: string; all: string[]; now: string; history?: { delay: number; time: string }[] }
+    >
     spinner.stop()
     const groups = Object.values(proxies).filter(p => p.type === 'Selector')
 
@@ -15,7 +18,6 @@ export async function proxy() {
       return
     }
 
-    // 选择组
     const groupName = await select({
       message: '请选择节点组:',
       choices: groups.map(g => ({ name: g.name, value: g.name })),
@@ -23,22 +25,22 @@ export async function proxy() {
 
     const group = proxies[groupName]
 
-    // 自动对组内所有节点进行测速
     spinner = ora(`测速后选择合适的节点，正在对 [${groupName}] 进行测速...`).start()
     await Promise.all(group.all.map(n => api.getProxyDelay(n).catch(() => {})))
 
-    // 测速完成后，刷新数据以获取最新状态
-    proxies = await api.getProxies()
+    proxies = (await api.getProxies()) as Record<
+      string,
+      { type: string; name: string; all: string[]; now: string; history?: { delay: number; time: string }[] }
+    >
     spinner.stop()
 
     const updatedGroup = proxies[groupName]
 
-    // 构建节点条目并按延迟排序，超时/未测速排最后
     const nodeEntries = updatedGroup.all.map(n => {
       const node = proxies[n]
       const lastHistory = node?.history && node.history.length ? node.history[node.history.length - 1] : null
       let delay = Infinity
-      let delayInfo = ''
+      let delayInfo: string
 
       if (lastHistory && lastHistory.delay > 0) {
         delay = lastHistory.delay
@@ -60,7 +62,6 @@ export async function proxy() {
 
     nodeEntries.sort((a, b) => a.delay - b.delay)
 
-    // 选择节点
     const proxyName = await select({
       message: `[${groupName}] 当前: ${updatedGroup.now}, 请选择节点:`,
       pageSize: 15,
@@ -70,12 +71,13 @@ export async function proxy() {
     spinner = ora(`正在切换到 ${proxyName}...`).start()
     await api.switchProxy(groupName, proxyName)
     spinner.succeed(`已切换 ${groupName} -> ${proxyName}`)
-  } catch (err) {
+  } catch (err: unknown) {
     if (spinner && spinner.isSpinning) spinner.stop()
-    if (err.message && (err.message.includes('ECONNREFUSED') || err.message.includes('无法连接'))) {
+    const message = err instanceof Error ? err.message : String(err)
+    if (message && (message.includes('ECONNREFUSED') || message.includes('无法连接'))) {
       console.error(chalk.red('\nClash 服务未运行，请先执行: ck start\n'))
     } else {
-      console.error(chalk.red(err.message))
+      console.error(chalk.red(message))
     }
   }
 }

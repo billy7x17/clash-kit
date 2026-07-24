@@ -6,7 +6,7 @@ import * as tun from '../tun.js'
 import * as sysnet from '../sysnet.js'
 import { main as startClashService } from '../service.js'
 
-async function turnOn() {
+async function turnOn(): Promise<void> {
   const spinner = ora('正在配置 TUN 模式...').start()
   let shouldRestart = false
 
@@ -17,7 +17,7 @@ async function turnOn() {
       const isRoot = process.getuid && process.getuid() === 0
 
       if (!hasPerm && !isRoot) {
-        spinner.stop() // Stop spinner for user interaction
+        spinner.stop()
         console.log(chalk.yellow('检测到内核缺少 SUID 权限，TUN 模式可能无法启动。'))
         const confirm = await select({
           message: '是否自动授予内核 SUID 权限 (推荐)?',
@@ -27,7 +27,7 @@ async function turnOn() {
           ],
         })
         if (confirm) {
-          tun.setupPermissions() // This is noisy
+          tun.setupPermissions()
           shouldRestart = true
         }
         spinner.start('正在继续配置...')
@@ -38,7 +38,7 @@ async function turnOn() {
     await tun.enableTun()
 
     spinner.text = '正在设置系统 DNS...'
-    sysnet.setDNS(['223.5.5.5', '114.114.114.114']) // This is noisy
+    sysnet.setDNS(['223.5.5.5', '114.114.114.114'])
 
     spinner.stop()
 
@@ -59,13 +59,22 @@ async function turnOn() {
     } else {
       console.log(chalk.gray('提示: 配置已热重载。如 TUN 未生效, 可尝试 `clash restart`。'))
     }
-  } catch (err) {
-    if (spinner.isSpinning) spinner.fail(`设置 TUN 失败: ${err.message}`)
-    else console.error(chalk.red(`设置 TUN 失败: ${err.message}`))
+  } catch (err: unknown) {
+    if (spinner.isSpinning) {
+      const message = err instanceof Error ? err.message : String(err)
+      spinner.fail(`设置 TUN 失败: ${message}`)
+    } else {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error(chalk.red(`设置 TUN 失败: ${message}`))
+    }
   }
 }
 
-async function turnOff(options = {}) {
+interface TurnOffOptions {
+  silent?: boolean
+}
+
+async function turnOff(options: TurnOffOptions = {}): Promise<{ success: boolean; error?: string }> {
   const silent = options.silent || false
   const spinner = silent ? null : ora('正在关闭 TUN 模式...').start()
   try {
@@ -92,13 +101,17 @@ async function turnOff(options = {}) {
       console.log(chalk.gray('提示: 配置已热重载。'))
     }
     return { success: true }
-  } catch (err) {
-    if (spinner) spinner.fail(`关闭 TUN 失败: ${err.message}`)
-    return { success: false, error: err.message }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    if (spinner) spinner.fail(`关闭 TUN 失败: ${message}`)
+    return { success: false, error: message }
   }
 }
 
-export async function setTun(action, options = {}) {
+export async function setTun(
+  action?: string,
+  options: TurnOffOptions = {},
+): Promise<{ success: boolean; error?: string } | void> {
   try {
     if (action === 'on') {
       await turnOn()
@@ -116,8 +129,8 @@ export async function setTun(action, options = {}) {
       if (answer === 'on') await turnOn()
       else await turnOff(options)
     }
-  } catch (err) {
-    // Catch errors from select/prompts
-    console.error(chalk.red(`操作失败: ${err.message}`))
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error(chalk.red(`操作失败: ${message}`))
   }
 }

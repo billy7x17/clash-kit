@@ -12,12 +12,11 @@
     "url": "https://github.com/billy7x17/clash-kit/issues"
   },
   "bin": {
-    "ck": "./bin/index.js",
-    "clash": "./bin/index.js"
+    "ck": "./dist/bin/index.js",
+    "clash": "./dist/bin/index.js"
   },
   "files": [
-    "bin",
-    "lib",
+    "dist",
     ".gitignore",
     "default.yaml",
     "country.mmdb",
@@ -27,16 +26,23 @@
     "kernels"
   ],
   "scripts": {
+    "build": "tsc",
     "start": "node bin/index.js start",
     "download:kernels": "node scripts/download-kernels.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublishOnly": "node scripts/release.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build",
     "sub": "node bin/index.js sub",
     "use": "node bin/index.js use",
     "list": "node bin/index.js list",
     "init": "node bin/index.js init",
     "status": "node bin/index.js status",
-    "stop": "node bin/index.js stop"
+    "stop": "node bin/index.js stop",
+    "tun": "node bin/index.js tun",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [
     "clash",
@@ -64,5 +70,15 @@
     "ora": "^9.0.0",
     "update-notifier": "^7.3.1",
     "yaml": "^2.8.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.1.1",
+    "eslint": "^10.7.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.6",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2",
+    "vitest": "^2.1.9"
   }
 }

@@ -4,13 +4,11 @@ import os from 'os'
 
 /**
  * 检查端口是否被占用 (true = 空闲, false = 被占用)
- * @param {number} port 
- * @returns {Promise<boolean>}
  */
-export function isPortOpen(port) {
-  return new Promise((resolve) => {
+export function isPortOpen(port: number): Promise<boolean> {
+  return new Promise(resolve => {
     const server = net.createServer()
-    server.once('error', (err) => {
+    server.once('error', () => {
       resolve(false) // 端口被占用
     })
     server.once('listening', () => {
@@ -23,10 +21,8 @@ export function isPortOpen(port) {
 
 /**
  * 获取占用端口的进程信息
- * @param {number} port 
- * @returns {string|null} 进程名称(PID)，例如 "mihomo (PID: 1234)"
  */
-export function getPortOccupier(port) {
+export function getPortOccupier(port: number): string | null {
   try {
     const platform = os.platform()
     if (platform === 'win32') {
@@ -34,30 +30,31 @@ export function getPortOccupier(port) {
       try {
         const output = execSync(`netstat -ano | findstr :${port}`).toString()
         const lines = output.trim().split('\n')
-        if(lines.length > 0) {
-            const parts = lines[0].trim().split(/\s+/)
-            const pid = parts[parts.length - 1]
-            try {
-              const tasklist = execSync(`tasklist /fi "pid eq ${pid}" /fo csv /nh`).toString().trim()
-              // "Image Name","PID","Session Name","Session#","Mem Usage"
-              // "node.exe","24424","Console","1","38,824 K"
-              const match = tasklist.match(/^"([^"]+)"/);
-              if (match) return `${match[1]} (PID: ${pid})`
-            } catch (e) {}
-            return `PID: ${pid}`
+        if (lines.length > 0) {
+          const parts = lines[0].trim().split(/\s+/)
+          const pid = parts[parts.length - 1]
+          try {
+            const tasklist = execSync(`tasklist /fi "pid eq ${pid}" /fo csv /nh`).toString().trim()
+            const match = tasklist.match(/^"([^"]+)"/)
+            if (match) return `${match[1]} (PID: ${pid})`
+          } catch {
+            /* process lookup failure — ignore */
+          }
+          return `PID: ${pid}`
         }
-      } catch (e) { return null }
+      } catch {
+        return null
+      }
     } else {
-        // macOS / Linux
-        // lsof output format: COMMAND PID USER FD TYPE DEVICE SIZE/OFF NODE NAME
-        const output = execSync(`lsof -i :${port} -sTCP:LISTEN -P -n`).toString().trim()
-        const lines = output.split('\n')
-        if (lines.length > 1) {
-            const parts = lines[1].trim().split(/\s+/)
-            return `${parts[0]} (PID: ${parts[1]})`
-        }
+      // macOS / Linux
+      const output = execSync(`lsof -i :${port} -sTCP:LISTEN -P -n`).toString().trim()
+      const lines = output.split('\n')
+      if (lines.length > 1) {
+        const parts = lines[1].trim().split(/\s+/)
+        return `${parts[0]} (PID: ${parts[1]})`
+      }
     }
-  } catch (e) {
+  } catch {
     // lsof 找不到时会返回非 0 退出码，抛出错误
     return null
   }
@@ -66,18 +63,16 @@ export function getPortOccupier(port) {
 
 /**
  * 寻找可用端口
- * @param {number} startPort 
- * @returns {Promise<number>}
  */
-export function findAvailablePort(startPort) {
+export function findAvailablePort(startPort: number): Promise<number> {
   return new Promise((resolve, reject) => {
     const server = net.createServer()
-    server.on('error', (err) => {
+    server.on('error', () => {
       if (startPort <= 65535) {
         // 核心逻辑：如果报错，递归尝试 +1 的端口
         resolve(findAvailablePort(startPort + 1))
       } else {
-        reject(err)
+        reject(new Error('No available port found'))
       }
     })
     server.on('listening', () => {
@@ -91,10 +86,8 @@ export function findAvailablePort(startPort) {
 
 /**
  * 从配置值中提取端口号
- * @param {string|number} val - 例如 9090, ":9090", "127.0.0.1:9090"
- * @returns {number|null}
  */
-export function extractPort(val) {
+export function extractPort(val: string | number | undefined): number | null {
   if (!val) return null
   if (typeof val === 'number') return val
   if (typeof val === 'string') {
@@ -102,7 +95,7 @@ export function extractPort(val) {
     val = val.trim()
     // 如果是纯数字字符串
     if (/^\d+$/.test(val)) return parseInt(val, 10)
-    
+
     // 如果包含冒号，取最后一部分
     if (val.includes(':')) {
       const parts = val.split(':')

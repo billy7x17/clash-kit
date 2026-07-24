@@ -2,15 +2,18 @@ import * as sysproxy from '../sysproxy.js'
 import { main as startClashService } from '../service.js'
 import { setTun } from './tun.js'
 import ora from 'ora'
-import boxen from 'boxen'
-import chalk from 'chalk'
 
-export async function start(options) {
+interface StartOptions {
+  sysproxy?: boolean
+  tun?: boolean
+}
+
+export async function start(options: StartOptions): Promise<void> {
   const spinner = ora('正在启动 Clash 服务...').start()
   await startClashService()
   spinner.stop()
 
-  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+  const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms))
 
   if (options.sysproxy) {
     const sysSpinner = ora('正在等待 Clash API 就绪以设置系统代理...').start()
@@ -24,7 +27,7 @@ export async function start(options) {
           sysOk = true
           break
         }
-      } catch (e) {
+      } catch {
         // 继续重试
       }
     }
