@@ -1,15 +1,15 @@
 {
-  "name": "clash-kit",
+  "name": "billy-clash-kit",
   "version": "1.2.0",
   "type": "module",
   "description": "A command-line interface for managing Clash configurations, subscriptions, and proxies.",
-  "homepage": "https://github.com/wangrongding/clash-kit#readme",
+  "homepage": "https://github.com/billy7x17/clash-kit#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wangrongding/clash-kit.git"
+    "url": "git+https://github.com/billy7x17/clash-kit.git"
   },
   "bugs": {
-    "url": "https://github.com/wangrongding/clash-kit/issues"
+    "url": "https://github.com/billy7x17/clash-kit/issues"
   },
   "bin": {
     "ck": "./bin/index.js",
@@ -46,9 +46,8 @@
     "manager"
   ],
   "author": {
-    "name": "荣顶",
-    "email": "wangrongding@guazi.com",
-    "url": "https://github.com/wangrongding"
+    "name": "billy7x17",
+    "url": "https://github.com/billy7x17"
   },
   "license": "MIT",
   "packageManager": "pnpm@10.23.0",
