@@ -4,7 +4,7 @@ import ora from 'ora'
 import boxen from 'boxen'
 import chalk from 'chalk'
 
-async function handleAction(action) {
+async function handleAction(action: string): Promise<void> {
   if (action === 'on') {
     const spinner = ora('正在开启系统代理...').start()
     const result = await sysproxy.enableSystemProxy()
@@ -43,11 +43,10 @@ async function handleAction(action) {
   }
 }
 
-export async function setSysProxy(action) {
+export async function setSysProxy(action?: string): Promise<void> {
   if (action === 'on' || action === 'off') {
     await handleAction(action)
   } else {
-    // 交互式选择
     const answer = await select({
       message: '请选择系统代理操作:',
       choices: [

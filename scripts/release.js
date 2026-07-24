@@ -17,7 +17,7 @@ async function run() {
     const pkgPath = path.resolve('package.json')
     const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
     const { name, version } = pkg
-    
+
     log.info(`开始处理发布流程: ${name}@${version}`)
 
     // 2. 下载内置内核压缩包
@@ -30,7 +30,7 @@ async function run() {
     log.info('正在执行 npm pack...')
     const tgzName = execSync('npm pack', { encoding: 'utf-8' }).trim()
     const tgzPath = path.resolve(tgzName)
-    
+
     if (!fs.existsSync(tgzPath)) {
       throw new Error(`未找到打包文件: ${tgzName}`)
     }
@@ -45,12 +45,12 @@ async function run() {
     const formulaPath = path.resolve('Formula', 'clash-kit.rb')
     if (fs.existsSync(formulaPath)) {
       let content = fs.readFileSync(formulaPath, 'utf-8')
-      
+
       // 更新 URL
       // 匹配 url "https://..."
       const urlRegex = /url "https:\/\/registry\.npmjs\.org\/.*?"/
       const newUrl = `url "https://registry.npmjs.org/${name}/-/${name}-${version}.tgz"`
-      
+
       if (content.match(urlRegex)) {
         content = content.replace(urlRegex, newUrl)
         log.success(`更新 Formula URL: ${newUrl}`)
@@ -61,7 +61,7 @@ async function run() {
       // 更新 SHA256
       const shaRegex = /sha256 "[a-f0-9]{64}"/
       const newSha = `sha256 "${hash}"`
-      
+
       if (content.match(shaRegex)) {
         content = content.replace(shaRegex, newSha)
         log.success('更新 Formula SHA256')
@@ -78,7 +78,7 @@ async function run() {
     // 6. 提示后续操作
     // 这里我们可以选择直接帮用户 publish 这个 tgz，或者只是提示
     // 为了稳妥，我们提示用户
-    
+
     console.log(chalk.yellow('\n----------------------------------------'))
     console.log(chalk.bold('下一步操作建议：'))
     console.log(chalk.cyan(`1. 发布 NPM 包 (使用生成的 tarball 以确保 hash 一致):`))
@@ -90,7 +90,6 @@ async function run() {
     console.log(chalk.cyan(`3. 清理文件:`))
     console.log(`   rm ${tgzName}`)
     console.log(chalk.yellow('----------------------------------------\n'))
-
   } catch (err) {
     log.error(`发生错误: ${err.message}`)
     process.exit(1)

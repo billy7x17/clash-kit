@@ -75,7 +75,9 @@ async function main() {
     const dest = path.join(kernelsDir, filename)
     const oldFiles = fs
       .readdirSync(kernelsDir)
-      .filter(file => file.startsWith(`${target.assetName}-`) && file.endsWith(`.${target.archiveExt}`) && file !== filename)
+      .filter(
+        file => file.startsWith(`${target.assetName}-`) && file.endsWith(`.${target.archiveExt}`) && file !== filename,
+      )
 
     for (const oldFile of oldFiles) {
       fs.unlinkSync(path.join(kernelsDir, oldFile))

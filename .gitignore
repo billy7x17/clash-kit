@@ -30,6 +30,9 @@ kernels/*.gz
 kernels/*.zip
 kernels/manifest.json
 
+# test coverage
+coverage/
+
 # ai coding
 .agents
 .claude

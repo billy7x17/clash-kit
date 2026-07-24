@@ -8,12 +8,16 @@ import ora from 'ora'
 import cliProgress from 'cli-progress'
 import chalk from 'chalk'
 import { execSync } from 'child_process'
-import { getKernelTarget, getTargetBinName } from './kernel-platforms.js'
+import { getKernelTarget, getTargetBinName, KernelTarget } from './kernel-platforms.js'
 import { DATA_DIR, packagePath } from './paths.js'
 
 const MIHOMO_VERSION_URL = 'https://github.com/MetaCubeX/mihomo/releases/latest/download/version.txt'
 
-function findBundledKernelArchive(target) {
+interface DownloadOptions {
+  remote?: boolean
+}
+
+function findBundledKernelArchive(target: KernelTarget & { key: string; isWindows: boolean }): string | null {
   const kernelsDir = packagePath('kernels')
   if (!target || !fs.existsSync(kernelsDir)) return null
 
@@ -28,7 +32,11 @@ function findBundledKernelArchive(target) {
   return file ? path.join(kernelsDir, file) : null
 }
 
-function extractArchive(archivePath, targetDir, target) {
+function extractArchive(
+  archivePath: string,
+  targetDir: string,
+  target: KernelTarget & { key: string; isWindows: boolean },
+): string {
   const targetBinName = getTargetBinName(target.platform)
   const targetBinPath = path.join(targetDir, targetBinName)
   const tempBinPath = path.join(targetDir, `${targetBinName}.tmp-${process.pid}-${Date.now()}`)
@@ -38,7 +46,9 @@ function extractArchive(archivePath, targetDir, target) {
       const zip = new AdmZip(archivePath)
       const entry = zip
         .getEntries()
-        .find(item => !item.isDirectory && (item.entryName.includes(target.assetName) || item.entryName.endsWith('.exe')))
+        .find(
+          item => !item.isDirectory && (item.entryName.includes(target.assetName) || item.entryName.endsWith('.exe')),
+        )
       if (!entry) throw new Error('压缩包中未找到可执行文件')
 
       zip.extractEntryTo(entry, targetDir, false, true)
@@ -62,7 +72,7 @@ function extractArchive(archivePath, targetDir, target) {
   return targetBinPath
 }
 
-export function installBundledClash(targetDir) {
+export function installBundledClash(targetDir: string): string | null {
   fs.mkdirSync(targetDir, { recursive: true })
 
   const target = getKernelTarget()
@@ -76,13 +86,14 @@ export function installBundledClash(targetDir) {
     const targetBinPath = extractArchive(archivePath, targetDir, target)
     spinner.succeed(chalk.green(`内置 Mihomo 内核已解压: ${targetBinPath}`))
     return targetBinPath
-  } catch (e) {
-    spinner.fail(chalk.red(`内置 Mihomo 内核解压失败: ${e.message}`))
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e)
+    spinner.fail(chalk.red(`内置 Mihomo 内核解压失败: ${message}`))
     throw e
   }
 }
 
-export async function downloadClash(targetDir, options = {}) {
+export async function downloadClash(targetDir: string, options: DownloadOptions = {}): Promise<string> {
   fs.mkdirSync(targetDir, { recursive: true })
 
   const platform = os.platform()
@@ -97,7 +108,7 @@ export async function downloadClash(targetDir, options = {}) {
     try {
       const bundledBinPath = installBundledClash(targetDir)
       if (bundledBinPath) return bundledBinPath
-    } catch (e) {
+    } catch {
       console.warn(chalk.yellow('将尝试从 GitHub 下载 Mihomo 内核...'))
     }
   } else {
@@ -106,14 +117,15 @@ export async function downloadClash(targetDir, options = {}) {
 
   // 1. 获取最新版本
   const spinner = ora('正在获取最新 Mihomo 版本信息...').start()
-  let version
+  let version: string
   try {
     const { data } = await axios.get(MIHOMO_VERSION_URL, { timeout: 30 * 1000 })
     version = data.trim()
     spinner.succeed(`检测到最新版本: ${version}`)
-  } catch (e) {
-    spinner.fail(`获取版本信息失败: ${e.message}`)
-    throw new Error(`获取版本信息失败: ${e.message}`)
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e)
+    spinner.fail(`获取版本信息失败: ${message}`)
+    throw new Error(`获取版本信息失败: ${message}`)
   }
 
   // 2. 构建下载 URL 和本地缓存路径
@@ -131,7 +143,7 @@ export async function downloadClash(targetDir, options = {}) {
         format: '下载进度 | {bar} | {percentage}% | {valueFormatted}/{totalFormatted} MB',
         hideCursor: true,
       },
-      cliProgress.Presets.shades_classic
+      cliProgress.Presets.shades_classic,
     )
 
     try {
@@ -141,7 +153,7 @@ export async function downloadClash(targetDir, options = {}) {
         url: downloadUrl,
         method: 'GET',
         responseType: 'arraybuffer',
-        onDownloadProgress: progressEvent => {
+        onDownloadProgress: (progressEvent: { loaded: number; total?: number }) => {
           if (progressEvent.total) {
             const loadedMB = (progressEvent.loaded / 1024 / 1024).toFixed(1)
             if (!started) {
@@ -161,13 +173,13 @@ export async function downloadClash(targetDir, options = {}) {
       })
       bar.stop()
 
-      fs.writeFileSync(archivePath, response.data)
+      fs.writeFileSync(archivePath, new Uint8Array(response.data as ArrayBuffer))
       console.log(chalk.green('下载完成，正在解压...'))
-    } catch (e) {
+    } catch (e: unknown) {
       bar.stop()
-      // 清理可能不完整的下载文件
+      const message = e instanceof Error ? e.message : String(e)
       if (fs.existsSync(archivePath)) fs.unlinkSync(archivePath)
-      throw new Error(`下载失败: ${e.message}`)
+      throw new Error(`下载失败: ${message}`)
     }
   }
 
@@ -179,40 +191,42 @@ export async function downloadClash(targetDir, options = {}) {
     // 清理同平台旧版本压缩包
     const oldArchives = fs
       .readdirSync(targetDir)
-      .filter(file => file.startsWith(`${target.assetName}-`) && file.endsWith(`.${target.archiveExt}`) && file !== archiveName)
+      .filter(
+        file =>
+          file.startsWith(`${target.assetName}-`) && file.endsWith(`.${target.archiveExt}`) && file !== archiveName,
+      )
     for (const oldFile of oldArchives) {
       fs.unlinkSync(path.join(targetDir, oldFile))
     }
 
     return targetBinPath
-  } catch (e) {
-    spinner.fail(chalk.red(`解压失败: ${e.message}`))
-    // 解压失败则删除可能损坏的压缩包，下次运行可重新下载
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e)
+    spinner.fail(chalk.red(`解压失败: ${message}`))
     if (fs.existsSync(archivePath)) fs.unlinkSync(archivePath)
-    throw new Error(`解压失败: ${e.message}`)
+    throw new Error(`解压失败: ${message}`)
   }
 }
 
-export function getClashProcessInfo() {
+export function getClashProcessInfo(): { pid: string } | null {
   try {
-    let pid
+    let pid: string | undefined
     if (process.platform === 'win32') {
-      const command = "tasklist | findstr clash-kit.exe"
+      const command = 'tasklist | findstr clash-kit.exe'
       const output = execSync(command, { encoding: 'utf-8' })
       const match = output.match(/(\d+)/)
-      pid = match ? match[0] : null
+      pid = match ? match[0] : undefined
     } else {
-      const command = "pgrep -f clash-kit"
+      const command = 'pgrep -f clash-kit'
       pid = execSync(command, { encoding: 'utf-8' }).trim()
     }
     return pid ? { pid } : null
-  } catch (e) {
-    // pgrep/findstr throws an error if no process is found
+  } catch {
     return null
   }
 }
 
-export function killClashProcess() {
+export function killClashProcess(): boolean {
   try {
     if (process.platform === 'win32') {
       execSync('taskkill /F /IM clash-kit.exe', { stdio: 'ignore' })
@@ -220,22 +234,7 @@ export function killClashProcess() {
       execSync('pkill -f clash-kit', { stdio: 'ignore' })
     }
     return true
-  } catch (e) {
+  } catch {
     return false
   }
 }
-
-function testDownload() {
-  // 测试下载功能
-  const rootDir = DATA_DIR
-  downloadClash(rootDir)
-    .then(binPath => {
-      console.log(`Mihomo 内核已下载并解压到: ${binPath}`)
-    })
-    .catch(err => {
-      console.error(`下载失败: ${err.message}`)
-    })
-}
-
-// 如果直接运行此文件，则执行测试
-if (import.meta.url === `file://${process.argv[1]}`) testDownload()

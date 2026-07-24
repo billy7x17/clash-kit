@@ -20,7 +20,7 @@ const pkg = require('../package.json')
 
 updateNotifier({
   pkg: pkg,
-  updateCheckInterval: 1000 * 60 * 60 * 24, // 检查更新间隔，1 day
+  updateCheckInterval: 1000 * 60 * 60 * 24,
   shouldNotifyInNpmScript: true,
 }).notify({
   isGlobal: true,
@@ -81,7 +81,13 @@ program
   .action(setSysProxy)
 
 // 设置 TUN 模式（真正的全局代理，所有流量都会被代理）
-program.command('tun').description('设置 TUN 模式 (可能需要提权)').argument('[action]', 'on 或 off').action(setTun)
+program
+  .command('tun')
+  .description('设置 TUN 模式 (可能需要提权)')
+  .argument('[action]', 'on 或 off')
+  .action(async (action?: string) => {
+    await setTun(action)
+  })
 
 // 查看 clash 状态
 program.command('info').alias('status').alias('view').description('查看 Clash 运行状态').action(status)

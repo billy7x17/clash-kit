@@ -1,16 +1,10 @@
-import path from 'path'
 import fs from 'fs'
-import { fileURLToPath } from 'url'
 import chalk from 'chalk'
 import YAML from 'yaml'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-const CONFIG_PATH = path.join(__dirname, '../../config.yaml')
+import { CONFIG_PATH } from '../paths.js'
 
 // 规则类型映射
-const RULE_TYPES = {
+const RULE_TYPES: Record<string, string> = {
   domain: 'DOMAIN',
   suffix: 'DOMAIN-SUFFIX',
   keyword: 'DOMAIN-KEYWORD',
@@ -19,8 +13,25 @@ const RULE_TYPES = {
   geoip: 'GEOIP',
 }
 
+interface ParsedRule {
+  type: string
+  pattern: string
+  target: string
+  original: string
+}
+
+interface RuleGroups {
+  DOMAIN: ParsedRule[]
+  'DOMAIN-SUFFIX': ParsedRule[]
+  'DOMAIN-KEYWORD': ParsedRule[]
+  'IP-CIDR': ParsedRule[]
+  GEOSITE: ParsedRule[]
+  GEOIP: ParsedRule[]
+  OTHER: { pattern: string; target: string }[]
+}
+
 // 解析单条规则
-function parseRule(ruleStr) {
+function parseRule(ruleStr: string): ParsedRule | null {
   const parts = ruleStr.split(',')
   if (parts.length < 3) return null
 
@@ -32,8 +43,8 @@ function parseRule(ruleStr) {
 }
 
 // 按类型分组规则
-function groupRules(rules) {
-  const groups = {
+function groupRules(rules: string[]): RuleGroups {
+  const groups: RuleGroups = {
     DOMAIN: [],
     'DOMAIN-SUFFIX': [],
     'DOMAIN-KEYWORD': [],
@@ -49,8 +60,9 @@ function groupRules(rules) {
       groups.OTHER.push({ pattern: rule, target: '' })
       continue
     }
-    if (groups[parsed.type]) {
-      groups[parsed.type].push(parsed)
+    const group = groups[parsed.type as keyof Omit<RuleGroups, 'OTHER'>]
+    if (group) {
+      group.push(parsed)
     } else {
       groups.OTHER.push(parsed)
     }
@@ -59,32 +71,22 @@ function groupRules(rules) {
   return groups
 }
 
-// 过滤规则（模糊查询）
-function filterRules(rules, keyword) {
-  if (!keyword) return rules
-  const lowerKeyword = keyword.toLowerCase()
-  return rules.filter(r => r.pattern.toLowerCase().includes(lowerKeyword))
-}
-
 // 列出规则
-export async function listRules(keyword) {
+export async function listRules(keyword?: string): Promise<void> {
   if (!fs.existsSync(CONFIG_PATH)) {
     return console.log(chalk.yellow('配置文件不存在，请先添加订阅'))
   }
 
   const configContent = fs.readFileSync(CONFIG_PATH, 'utf8')
   const config = YAML.parse(configContent)
-  const rules = config.rules || []
+  const rules: string[] = config.rules || []
 
   if (rules.length === 0) {
     console.log(chalk.yellow('暂未配置规则'))
     return
   }
 
-  // 过滤
   const filteredRules = keyword ? rules.filter(r => r.toLowerCase().includes(keyword.toLowerCase())) : rules
-
-  // 分组
   const groups = groupRules(filteredRules)
 
   console.log(chalk.cyan('\n=== 代理规则 ===\n'))
@@ -104,8 +106,14 @@ export async function listRules(keyword) {
   }
 }
 
+interface AddRuleOptions {
+  type: string
+  pattern: string
+  target: string
+}
+
 // 添加规则
-export async function addRule(options) {
+export async function addRule(options: AddRuleOptions): Promise<void> {
   const { type, pattern, target } = options
 
   if (!type || !pattern || !target) {
@@ -128,9 +136,8 @@ export async function addRule(options) {
     config.rules = []
   }
 
-  // 检查是否已存在相同规则
   const newRule = `${ruleType},${pattern},${target}`
-  const exists = config.rules.some(r => {
+  const exists = config.rules.some((r: string) => {
     const parsed = parseRule(r)
     return parsed && parsed.type === ruleType && parsed.pattern === pattern
   })
@@ -146,8 +153,8 @@ export async function addRule(options) {
   console.log(chalk.green(`规则添加成功: ${ruleType},${pattern},${target}`))
 }
 
-// 删除规则（可选功能）
-export async function deleteRule(pattern) {
+// 删除规则
+export async function deleteRule(pattern?: string): Promise<void> {
   if (!pattern) {
     return console.error(chalk.red('错误: 需要指定要删除的模式'))
   }
@@ -164,7 +171,7 @@ export async function deleteRule(pattern) {
   }
 
   const beforeCount = config.rules.length
-  config.rules = config.rules.filter(r => {
+  config.rules = config.rules.filter((r: string) => {
     const parsed = parseRule(r)
     return !parsed || parsed.pattern !== pattern
   })

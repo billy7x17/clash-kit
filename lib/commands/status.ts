@@ -9,7 +9,7 @@ import chalk from 'chalk'
 import boxen from 'boxen'
 import { LOG_PATH, PROFILES_DIR } from '../paths.js'
 
-export async function status() {
+export async function status(): Promise<void> {
   const spinner = ora('正在获取 Clash 状态...').start()
   try {
     const [config, currentProfile, tunEnabled, sysProxyStatus, proxies, processInfo] = await Promise.all([
@@ -17,7 +17,12 @@ export async function status() {
       sub.getCurrentProfile(),
       tun.isTunEnabled(),
       sysproxy.getSystemProxyStatus(),
-      api.getProxies(),
+      api.getProxies() as Promise<
+        Record<
+          string,
+          { type: string; name: string; all: string[]; now: string; history?: { delay: number; time: string }[] }
+        >
+      >,
       getClashProcessInfo(),
     ])
 
@@ -26,34 +31,39 @@ export async function status() {
     const configPath = sub.CONFIG_PATH
     const logPath = LOG_PATH
 
-    // 订阅节点数
     let profileNodeCount = ''
     if (currentProfile) {
       try {
         const profilePath = path.join(PROFILES_DIR, `${currentProfile}.yaml`)
         const YAML = (await import('yaml')).default
-        const fs = (await import('fs')).default
-        if (fs.existsSync(profilePath)) {
-          const parsed = YAML.parse(fs.readFileSync(profilePath, 'utf8'))
+        const fsModule = (await import('fs')).default
+        if (fsModule.existsSync(profilePath)) {
+          const parsed = YAML.parse(fsModule.readFileSync(profilePath, 'utf8'))
           const count = parsed?.proxies?.length || 0
           if (count > 0) profileNodeCount = chalk.gray(` (${count} 个节点)`)
         }
-      } catch {}
+      } catch {
+        /* process info may be unavailable */
+      }
     }
 
-    const content = []
+    const content: string[] = []
     let statusLine = `状态：${chalk.green('运行中')}`
     if (processInfo?.pid) {
       statusLine += ` (PID: ${chalk.yellow(processInfo.pid)})`
     }
     content.push(statusLine)
     content.push(`当前配置: ${currentProfile || '未知'}${profileNodeCount}`)
-    content.push(`运行模式: ${config.mode}`)
+    content.push(`运行模式: ${(config as Record<string, unknown>).mode}`)
     content.push(`API 地址:    ${chalk.cyan(apiBase)}`)
-    content.push(`HTTP 代理:   ${chalk.cyan(`http://127.0.0.1:${config['port'] || '未设置'}`)}`)
-    content.push(`SOCKS5 代理: ${chalk.cyan(`socks5://127.0.0.1:${config['socks-port'] || '未设置'}`)}`)
     content.push(
-      `混合代理:    ${config['mixed-port'] ? chalk.cyan(`127.0.0.1:${config['mixed-port']}`) : chalk.gray('未设置')}`,
+      `HTTP 代理:   ${chalk.cyan(`http://127.0.0.1:${(config as Record<string, unknown>)['port'] || '未设置'}`)}`,
+    )
+    content.push(
+      `SOCKS5 代理: ${chalk.cyan(`socks5://127.0.0.1:${(config as Record<string, unknown>)['socks-port'] || '未设置'}`)}`,
+    )
+    content.push(
+      `混合代理:    ${(config as Record<string, unknown>)['mixed-port'] ? chalk.cyan(`127.0.0.1:${(config as Record<string, unknown>)['mixed-port']}`) : chalk.gray('未设置')}`,
     )
     content.push('')
     const sysProxyText = sysProxyStatus?.enabled
@@ -61,9 +71,10 @@ export async function status() {
       : chalk.gray('未开启')
     content.push(`系统代理: ${sysProxyText}`)
     content.push(`TUN 模式(拦截所有流量): ${tunEnabled ? chalk.green('已开启') : chalk.gray('未开启')}`)
-    if (tunEnabled && config.dns) {
-      const dnsServers = config.dns.nameserver?.slice(0, 2).join(', ') || ''
-      const dnsMode = config.dns['enhanced-mode'] || ''
+    if (tunEnabled && (config as Record<string, unknown>).dns) {
+      const dns = (config as Record<string, unknown>).dns as Record<string, unknown>
+      const dnsServers = (dns.nameserver as string[])?.slice(0, 2).join(', ') || ''
+      const dnsMode = dns['enhanced-mode'] || ''
       content.push(
         `DNS 模式: ${chalk.cyan(dnsMode || '默认')}${dnsServers ? '  服务器: ' + chalk.cyan(dnsServers) : ''}`,
       )
@@ -88,7 +99,6 @@ export async function status() {
       }),
     )
 
-    // 默认测速 Proxy 组的所有节点
     const group = proxies['Proxy'] || Object.values(proxies).find(p => p.type === 'Selector')
     if (group?.now) {
       const testUrl = group.now === 'DIRECT' ? 'http://connect.rom.miui.com/generate_204' : undefined
@@ -103,11 +113,12 @@ export async function status() {
       }
       console.log(`🚀 节点延迟 [${group.name}: ${group.now}]: ${delayStr}\n`)
     }
-  } catch (err) {
+  } catch (err: unknown) {
     if (spinner.isSpinning) spinner.stop()
-    if (err.message && (err.message.includes('ECONNREFUSED') || err.message.includes('无法连接'))) {
+    const message = err instanceof Error ? err.message : String(err)
+    if (message && (message.includes('ECONNREFUSED') || message.includes('无法连接'))) {
       const configPath = sub.CONFIG_PATH
-      const content = []
+      const content: string[] = []
       content.push(`状态：${chalk.yellow('未运行')}`)
       content.push('提示：请使用 `ck start` 启动服务')
       content.push(`当前配置文件: ${configPath || '未知'}`)
@@ -121,7 +132,7 @@ export async function status() {
         }),
       )
     } else {
-      console.error(`获取状态失败: ${err.message}`)
+      console.error(`获取状态失败: ${message}`)
     }
   }
 }

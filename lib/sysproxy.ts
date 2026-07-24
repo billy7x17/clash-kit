@@ -2,7 +2,7 @@ import { triggerManualProxy } from '@mihomo-party/sysproxy'
 import { execSync } from 'child_process'
 import * as api from './api.js'
 
-const defaultBypass = (() => {
+const defaultBypass: string[] = (() => {
   switch (process.platform) {
     case 'linux':
       return ['localhost', '127.0.0.1', '192.168.0.0/16', '10.0.0.0/8', '172.16.0.0/12', '::1']
@@ -46,35 +46,40 @@ const defaultBypass = (() => {
   }
 })()
 
-export async function enableSystemProxy() {
+export async function enableSystemProxy(): Promise<{ success: boolean; host?: string; port?: number; error?: string }> {
   try {
     const config = await api.getConfig()
     const port = config['mixed-port'] || config['port']
     if (!port) throw new Error('未找到 HTTP 代理端口配置 (port 或 mixed-port)')
-    // 默认代理地址为 127.0.0.1
     const host = '127.0.0.1'
     const bypass = defaultBypass.join(',')
 
-    // 开启系统代理
-    triggerManualProxy(true, host, port, bypass)
-    return { success: true, host, port }
-  } catch (err) {
-    return { success: false, error: err.message }
+    triggerManualProxy(true, host, port as number, bypass)
+    return { success: true, host, port: port as number }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    return { success: false, error: message }
   }
 }
 
-export async function disableSystemProxy() {
+export async function disableSystemProxy(): Promise<{ success: boolean; error?: string }> {
   try {
-    // 关闭系统代理
     triggerManualProxy(false, '', 0, '')
     return { success: true }
-  } catch (err) {
-    return { success: false, error: err.message }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    return { success: false, error: message }
   }
 }
 
-export async function getSystemProxyStatus() {
-  // 使用 macOS networksetup 命令获取系统代理状态
+export interface SystemProxyStatus {
+  enabled: boolean
+  server?: string
+  port?: string
+  error?: string
+}
+
+export async function getSystemProxyStatus(): Promise<SystemProxyStatus> {
   if (process.platform === 'darwin') {
     try {
       const output = execSync('networksetup -getwebproxy Wi-Fi', { encoding: 'utf-8' })
@@ -87,28 +92,25 @@ export async function getSystemProxyStatus() {
         return { enabled: true, server, port }
       }
       return { enabled: false }
-    } catch (e) {
-      return { enabled: false, error: e.message }
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e)
+      return { enabled: false, error: message }
     }
   } else if (process.platform === 'win32') {
     try {
       const regPath = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings'
-      // 查询 ProxyEnable
       const enableOutput = execSync(`reg query "${regPath}" /v ProxyEnable`, { encoding: 'utf-8' })
-      // 检查输出中是否包含 0x1，表示代理已开启
       const isEnabled = /ProxyEnable\s+REG_DWORD\s+0x1/.test(enableOutput)
 
       if (isEnabled) {
         let server = ''
         let port = ''
         try {
-          // 查询 ProxyServer
           const serverOutput = execSync(`reg query "${regPath}" /v ProxyServer`, { encoding: 'utf-8' })
           const match = serverOutput.match(/ProxyServer\s+REG_SZ\s+(.*)/)
 
           if (match && match[1]) {
             const fullAddress = match[1].trim()
-            // 简单的处理 host:port 格式
             const lastColonIndex = fullAddress.lastIndexOf(':')
             if (lastColonIndex !== -1) {
               server = fullAddress.substring(0, lastColonIndex)
@@ -117,15 +119,15 @@ export async function getSystemProxyStatus() {
               server = fullAddress
             }
           }
-        } catch (e) {
+        } catch {
           // 忽略获取详细信息的错误
         }
         return { enabled: true, server, port }
       }
       return { enabled: false }
-    } catch (e) {
-      // 如果注册表键不存在或查询出错
-      return { enabled: false, error: e.message }
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e)
+      return { enabled: false, error: message }
     }
   } else {
     return { enabled: false, error: '不支持的平台' }
