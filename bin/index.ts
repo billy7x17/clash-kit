@@ -123,10 +123,7 @@ program
   .action(test)
 
 // 安装为系统服务，实现开机自启动
-program
-  .command('install')
-  .description('安装为系统服务，实现开机自启动')
-  .action(install)
+program.command('install').description('安装为系统服务，实现开机自启动').action(install)
 
 // Support -V for version
 if (process.argv.includes('-V')) {

@@ -141,24 +141,24 @@ ck install
 
 ## 命令详解
 
-| 命令 (别名)                       | 说明                         | 示例                                                                     |
-| --------------------------------- | ---------------------------- | ------------------------------------------------------------------------ |
-| `ck init`                         | 初始化内核及权限             | `ck init`                                                                |
-| `ck on` (`start`)                 | 启动 Clash 服务              | `ck on` `ck on -s` (启动并设置系统代理) `ck on -t` (启动并开启 TUN 模式) |
-| `ck off` (`stop`)                 | 停止服务并关闭代理           | `ck off`                                                                 |
-| `ck restart` (`rs`, `re`)         | 重启 Clash 服务              | `ck rs` `ck rs -s` (重启并设置系统代理) `ck rs -t` (重启并开启 TUN 模式) |
-| `ck info` (`status`, `view`)      | 查看运行状态及当前节点延迟   | `ck info`                                                                |
-| `ck sysproxy` (`sys`)             | 设置系统代理                 | `ck sys on` / `ck sys off`                                               |
-| `ck tun`                          | 设置 TUN 模式 (需要 root)    | `ck tun on` / `ck tun off`                                               |
-| `ck sub`                          | 管理订阅（交互式）【推荐】   | `ck sub`                                                                 |
-| `ck sub -l`                       | 列出所有订阅                 | `ck sub -l`                                                              |
-| `ck sub -n <name> -a <url>`       | 添加订阅                     | `ck sub -n "pro" -a "http..."`                                           |
-| `ck sub -u <name>`                | 切换订阅                     | `ck sub -u "pro"`                                                        |
-| `ck sub -d <name>`                | 删除订阅                     | `ck sub -d "pro"`                                                        |
-| `ck sub --ua <User-Agent>`        | 自定义 User-Agent            | `ck sub --ua "clash-verge/2.4.0"`                                        |
-| `ck use` (`node`, `proxy`, `switch`) | 切换节点 (自动测速)       | `ck use`                                                                 |
-| `ck list` (`ls`, `test`, `t`)     | 节点测速列表 (不切换)        | `ck list`                                                                |
-| `ck install`                      | 安装为系统服务，开机自启动   | `ck install`                                                             |
+| 命令 (别名)                          | 说明                       | 示例                                                                     |
+| ------------------------------------ | -------------------------- | ------------------------------------------------------------------------ |
+| `ck init`                            | 初始化内核及权限           | `ck init`                                                                |
+| `ck on` (`start`)                    | 启动 Clash 服务            | `ck on` `ck on -s` (启动并设置系统代理) `ck on -t` (启动并开启 TUN 模式) |
+| `ck off` (`stop`)                    | 停止服务并关闭代理         | `ck off`                                                                 |
+| `ck restart` (`rs`, `re`)            | 重启 Clash 服务            | `ck rs` `ck rs -s` (重启并设置系统代理) `ck rs -t` (重启并开启 TUN 模式) |
+| `ck info` (`status`, `view`)         | 查看运行状态及当前节点延迟 | `ck info`                                                                |
+| `ck sysproxy` (`sys`)                | 设置系统代理               | `ck sys on` / `ck sys off`                                               |
+| `ck tun`                             | 设置 TUN 模式 (需要 root)  | `ck tun on` / `ck tun off`                                               |
+| `ck sub`                             | 管理订阅（交互式）【推荐】 | `ck sub`                                                                 |
+| `ck sub -l`                          | 列出所有订阅               | `ck sub -l`                                                              |
+| `ck sub -n <name> -a <url>`          | 添加订阅                   | `ck sub -n "pro" -a "http..."`                                           |
+| `ck sub -u <name>`                   | 切换订阅                   | `ck sub -u "pro"`                                                        |
+| `ck sub -d <name>`                   | 删除订阅                   | `ck sub -d "pro"`                                                        |
+| `ck sub --ua <User-Agent>`           | 自定义 User-Agent          | `ck sub --ua "clash-verge/2.4.0"`                                        |
+| `ck use` (`node`, `proxy`, `switch`) | 切换节点 (自动测速)        | `ck use`                                                                 |
+| `ck list` (`ls`, `test`, `t`)        | 节点测速列表 (不切换)      | `ck list`                                                                |
+| `ck install`                         | 安装为系统服务，开机自启动 | `ck install`                                                             |
 
 ## License
 
