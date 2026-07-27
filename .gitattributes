@@ -1,0 +1,29 @@
+# Auto-detect text files and enforce LF line endings
+* text=auto eol=lf
+
+# Source code
+*.ts text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+
+# Config files (no EOL conversion)
+.editorconfig text eol=lf
+.gitattributes text eol=lf
+.prettierrc text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.gz binary
+*.zip binary
+*.tar binary
+*.exe binary
+*.dll binary
