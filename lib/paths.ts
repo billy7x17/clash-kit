@@ -9,12 +9,21 @@ const __dirname = path.dirname(__filename)
 
 const binName = getTargetBinName()
 
-export const PACKAGE_ROOT = path.resolve(__dirname, '..')
+function resolvePackageRoot(): string {
+  // Try one level up (works for source: lib/.. = project root)
+  const candidate = path.resolve(__dirname, '..')
+  if (fs.existsSync(path.join(candidate, 'package.json'))) return candidate
+  // Try two levels up (works for dist: dist/lib/../.. = project root)
+  return path.resolve(__dirname, '../..')
+}
+
+export const PACKAGE_ROOT = resolvePackageRoot()
 export const DATA_DIR = path.join(os.homedir(), '.clash-kit')
 export const PROFILES_DIR = path.join(DATA_DIR, 'profiles')
 export const CONFIG_PATH = path.join(DATA_DIR, 'config.yaml')
 export const CURRENT_PROFILE_PATH = path.join(DATA_DIR, '.current_profile')
 export const LOG_PATH = path.join(DATA_DIR, 'clash.log')
+export const STARTUP_LOG_PATH = path.join(DATA_DIR, 'startup.log')
 export const CLASH_BIN_PATH = path.join(DATA_DIR, binName)
 export const DEFAULT_CONFIG_PATH = path.join(PACKAGE_ROOT, 'default.yaml')
 export const BUNDLED_RESOURCE_FILES = ['country.mmdb']

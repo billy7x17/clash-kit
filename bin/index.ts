@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
+import { readFileSync } from 'fs'
+import path from 'path'
 import { Command } from 'commander'
-import { createRequire } from 'module'
+import { PACKAGE_ROOT } from '../lib/paths.js'
 import { init } from '../lib/commands/init.js'
 import { start } from '../lib/commands/start.js'
 import { restart } from '../lib/commands/restart.js'
@@ -12,11 +14,11 @@ import { status } from '../lib/commands/status.js'
 import { manageSub } from '../lib/commands/sub.js'
 import { proxy } from '../lib/commands/proxy.js'
 import { test } from '../lib/commands/test.js'
+import { install } from '../lib/commands/install.js'
 import { migrateLegacyData } from '../lib/paths.js'
 import updateNotifier from 'update-notifier'
 
-const require = createRequire(import.meta.url)
-const pkg = require('../package.json')
+const pkg = JSON.parse(readFileSync(path.join(PACKAGE_ROOT, 'package.json'), 'utf8'))
 
 updateNotifier({
   pkg: pkg,
@@ -119,6 +121,12 @@ program
   .alias('t')
   .description('节点测速 (别名: list, ls, test, t) ')
   .action(test)
+
+// 安装为系统服务，实现开机自启动
+program
+  .command('install')
+  .description('安装为系统服务，实现开机自启动')
+  .action(install)
 
 // Support -V for version
 if (process.argv.includes('-V')) {
